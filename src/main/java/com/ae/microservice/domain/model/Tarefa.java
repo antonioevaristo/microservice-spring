@@ -9,7 +9,7 @@ import java.util.UUID;
 @Data
 public class Tarefa {
 
-    private UUID codigo;
+    private UUID codigo = UUID.randomUUID();
     private String descricao;
     private PrioridadeEnum prioridade;
     private Date horarioTarefa;
