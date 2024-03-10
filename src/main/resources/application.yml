@@ -1,8 +1,6 @@
 
 server:
   port: 8080
-  servlet:
-    contextPath: /tarefa
   undertow:
     threads:
       io: 5
@@ -17,3 +15,6 @@ server:
 spring:
   application:
     name: microservice-spring
+  data:
+    mongodb:
+      uri: mongodb://root:example@mongo:27017/tarefamongo
