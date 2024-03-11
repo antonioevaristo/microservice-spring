@@ -1,21 +1,26 @@
 package com.ae.microservice.integration.entity;
 
 import com.ae.microservice.domain.enums.PrioridadeEnum;
-import lombok.Data;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
-import java.util.UUID;
 
-@Data
-@Document(collation = "Tarefa")
+@Getter
+@Setter
+@AllArgsConstructor
+@Document
 public class TarefaEntity {
     @Id
     private String id;
-    private UUID codigo;
+    @NonNull
+    private String codigo;
+    @NonNull
     private String descricao;
+    @NonNull
     private PrioridadeEnum prioridade;
     private Date horarioTarefa;
+    @NonNull
     private Boolean status;
 }

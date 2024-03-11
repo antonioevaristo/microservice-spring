@@ -2,6 +2,8 @@ package com.ae.microservice.integration.repository;
 
 import com.ae.microservice.domain.model.Tarefa;
 import com.ae.microservice.domain.repository.ITarefaRepository;
+import com.ae.microservice.integration.entity.TarefaEntity;
+import com.ae.microservice.integration.mapper.TarefaMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -17,7 +19,9 @@ public class TarefaRepository implements ITarefaRepository {
 
     @Override
     public Tarefa create(Tarefa tarefa) {
-        return null;
+        TarefaEntity tarefaEntity = TarefaMapper.INSTANCE.tarefaToTarefaEntity(tarefa);
+        return TarefaMapper.INSTANCE.tarefaEntityToTarefa(tarefaRepositoryEntity.save(tarefaEntity));
+
     }
 
     @Override
