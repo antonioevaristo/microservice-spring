@@ -14,7 +14,9 @@ server:
         record-request-start-time: true
 spring:
   application:
-    name: microservice-spring
+    name: microservice-spring-mongodb
   data:
     mongodb:
-      uri: mongodb://root:example@mongo:27017/tarefamongo
+      authentication-database: admin
+      uri: ${MONGO_DB_URI:mongodb://root:example@localhost:27017/tarefa_mongodb?authSource=admin}
+      auto-index-creation: true
