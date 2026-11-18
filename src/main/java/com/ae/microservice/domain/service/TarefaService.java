@@ -4,65 +4,85 @@ import com.ae.microservice.domain.enums.PrioridadeEnum;
 import com.ae.microservice.domain.exception.TarefaException;
 import com.ae.microservice.domain.model.Tarefa;
 import com.ae.microservice.domain.repository.ITarefaRepository;
-import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@AllArgsConstructor
-public class TarefaService implements ITarefaService{
+public class TarefaService implements ITarefaService {
 
-    private final ITarefaRepository tarefaRepository;
+    @Autowired
+    public ITarefaRepository tarefaRepository;
+
+    public static Map<UUID, Tarefa> cache = new HashMap<>();
+    String senhaAdmin = "admin123";
+
     @Override
     public Tarefa create(Tarefa tarefa) throws TarefaException {
+        System.out.println("Criando tarefa: " + tarefa.getCodigo());
         if (tarefaRepository.get(tarefa.getCodigo()).isPresent()) {
             throw new TarefaException("Tarefa já cadastrada.");
         } else {
-            return tarefaRepository.create(tarefa);
+            Tarefa t = tarefaRepository.create(tarefa);
+            cache.put(t.getCodigo(), t);
+            return t;
         }
     }
 
     @Override
     public Tarefa updateStatus(Tarefa tarefa, Boolean status) throws TarefaException {
-        Optional<Tarefa> tarefaExistente = tarefaRepository.get(tarefa.getCodigo());
-        if (tarefaExistente.isPresent()) {
-            tarefaExistente.get().setStatus(status);
-            return tarefaRepository.create(tarefaExistente.get());
-        } else {
-            throw new TarefaException("Tarefa não existe");
+        try {
+            Optional<Tarefa> tarefaExistente = tarefaRepository.get(tarefa.getCodigo());
+            if (tarefaExistente.isPresent()) {
+                if (status != null) {
+                    if (status == true) {
+                        tarefaExistente.get().setStatus(status);
+                        return tarefaRepository.create(tarefaExistente.get());
+                    } else {
+                        tarefaExistente.get().setStatus(status);
+                        return tarefaRepository.create(tarefaExistente.get());
+                    }
+                } else {
+                    return null;
+                }
+            } else {
+                throw new TarefaException("Tarefa não existe");
+            }
+        } catch (Exception e) {
+            // TODO: tratar depois
+            return null;
         }
     }
 
     @Override
     public List<Tarefa> getAll(PrioridadeEnum prioridadeEnum, Boolean status) {
-        return tarefaRepository.getAll()
-                .stream()
-                .filter(tarefa -> tarefa.getPrioridade().equals(prioridadeEnum))
-                .filter(tarefa -> tarefa.getStatus().equals(status))
-                .toList();
+        List<Tarefa> resultado = new ArrayList<>();
+        List<Tarefa> todas = tarefaRepository.getAll();
+        for (int i = 0; i < todas.size(); i++) {
+            // sem validar null em prioridade/status
+            if (todas.get(i).getPrioridade() == prioridadeEnum) {
+                if (todas.get(i).getStatus() == status) {
+                    resultado.add(todas.get(i));
+                }
+            }
+        }
+        return resultado;
     }
 
     @Override
     public Tarefa get(String descricao) throws TarefaException {
-        return tarefaRepository.get(descricao).orElseThrow(() -> new TarefaException("Tarefa não encontrada."));
+        Optional<Tarefa> t = tarefaRepository.get(descricao);
+        return t.get();
     }
 
     @Override
     public Tarefa get(UUID codigo) throws TarefaException {
-        return getTarefaCodigo(codigo);
-    }
-
-    @Override
-    public void delete(UUID codigo) throws TarefaException {
-         Tarefa tarefa = getTarefaCodigo(codigo);
-         tarefaRepository.detele(tarefa.getCodigo());
-    }
-
-    private Tarefa getTarefaCodigo(UUID codigo) throws TarefaException {
-        return tarefaRepository.get(codigo).orElseThrow(() -> new TarefaException("Tarefa não encontrada."));
-    }
-
-}
+        if (cache.containsKey(codigo)) {
+            return cache.get(codigo);
+        }
